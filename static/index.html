@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRC</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+
+    <link href="stylesheets/jquery.cssemoticons.css" media="screen" rel="stylesheet" type="text/css" />
+    <script src="javascripts/jquery.cssemoticons.min.js" type="text/javascript"></script>
+
+    <script src="lib/jquery.tinyscrollbar.min.js"></script>
+
+    <link rel="stylesheet" href="tinyscrollbar.css">
+
+    <script>
+        $(document).ready(function() {
+            $("#wrapper").tinyscrollbar();
+        });
+    </script>
+
+</head>
+
+<body onload="poll()">
+
+    <div id="main">
+        <div id="wrapper">
+            <div class="scrollbar">
+                <div class="track">
+                    <div class="thumb">
+                      
+                    </div>
+                </div>
+            </div>
+            <div class="viewport">
+                <div class="overview" id="container">
+
+                </div>
+            </div>
+        </div>
+        <input type="text" name="message" id="message" autofocus>
+    </div>
+
+    <script>
+        let nick = prompt("Podaj nick:")
+
+        while(nick==""){
+            nick = prompt("Podaj nick:")
+        }
+
+        let r = Math.floor(Math.random() * 256)
+        let g = Math.floor(Math.random() * 256)
+        let b = Math.floor(Math.random() * 256)
+
+        let zalogowany = true
+
+        let color = `rgb(${r},${g},${b})`
+
+        $(document).keydown(function(e) {
+            if (e.which == 13 && zalogowany) {
+                send()
+            }
+        })
+
+        function poll() {
+            $.ajax({
+                type: "POST",
+                url: "/polling",
+                dataType: "text",
+                success: function(msg) {
+                    console.log(msg)
+                    if (msg != "" && zalogowany) {
+                        document.getElementById("container").innerHTML += msg + "<br>"
+                        $('.message').emoticonize({})
+                        $('#wrapper').data('plugin_tinyscrollbar').update()
+                        $(".viewport")[0].scrollTop=$(".viewport")[0].scrollHeight
+                        $(".thumb").css("top", $('.track').height() - $('.thumb').height())
+                    }
+                },
+                complete: function() {
+                    if (zalogowany) {
+                        console.log("polll")
+                        poll();
+                    }
+                }
+            })
+        }
+
+        async function send() {
+            let message = document.getElementById("message").value
+
+            if (message == "/color") {
+                let newColor = prompt("wybierz swój kolor: [red, green, blue, black, purple, orange, yellow] ")
+                if (newColor == "red" || newColor == "green" || newColor == "blue" || newColor == "black" || newColor == "purple" || newColor == "orange" || newColor == "yellow") {
+                    alert("Zmieniono kolor")
+                    color = newColor
+                } else {
+                    alert("Błędny kolor")
+                }
+                document.getElementById("message").value = ""
+            } else if (message == "/nick") {
+                let newNick = prompt("Zmień nick: ")
+                if (newNick != "") {
+                    alert("Zmieniono nick")
+                    nick = newNick
+                } else {
+                    alert("Błędny nick")
+                }
+                document.getElementById("message").value = ""
+            } else if (message == "/quit") {
+                zalogowany = false
+                document.getElementById("container").innerHTML += "WYLOGOWANO" + "<br>"
+                document.getElementById("message").value = ""
+            } else {
+                let json = await fetchPostAsync(message)
+                document.getElementById("message").value = ""
+            }
+        }
+
+        async function fetchPostAsync(message) {
+
+            const body = JSON.stringify({
+                nick: nick,
+                message: message,
+                color: color
+            })
+
+            const headers = {
+                "Content-Type": "application/json"
+            }
+
+            let response = await fetch("/sentNewMessage", {
+                method: "post",
+                body,
+                headers
+            })
+
+            if (!response.ok)
+                return response.status
+            else
+                return await response
+        }
+    </script>
+</body>
+
+</html>
