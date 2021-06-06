@@ -91,32 +91,33 @@
 
         async function send() {
             let message = document.getElementById("message").value
-
-            if (message == "/color") {
-                let newColor = prompt("wybierz swój kolor: [red, green, blue, black, purple, orange, yellow] ")
-                if (newColor == "red" || newColor == "green" || newColor == "blue" || newColor == "black" || newColor == "purple" || newColor == "orange" || newColor == "yellow") {
-                    alert("Zmieniono kolor")
-                    color = newColor
+            if(message!=""){
+                if (message == "/color") {
+                    let newColor = prompt("wybierz swój kolor: [red, green, blue, black, purple, orange, yellow] ")
+                    if (newColor == "red" || newColor == "green" || newColor == "blue" || newColor == "black" || newColor == "purple" || newColor == "orange" || newColor == "yellow") {
+                        alert("Zmieniono kolor")
+                        color = newColor
+                    } else {
+                        alert("Błędny kolor")
+                    }
+                    document.getElementById("message").value = ""
+                } else if (message == "/nick") {
+                    let newNick = prompt("Zmień nick: ")
+                    if (newNick != "") {
+                        alert("Zmieniono nick")
+                        nick = newNick
+                    } else {
+                        alert("Błędny nick")
+                    }
+                    document.getElementById("message").value = ""
+                } else if (message == "/quit") {
+                    zalogowany = false
+                    document.getElementById("container").innerHTML += "WYLOGOWANO" + "<br>"
+                    document.getElementById("message").value = ""
                 } else {
-                    alert("Błędny kolor")
+                    let json = await fetchPostAsync(message)
+                    document.getElementById("message").value = ""
                 }
-                document.getElementById("message").value = ""
-            } else if (message == "/nick") {
-                let newNick = prompt("Zmień nick: ")
-                if (newNick != "") {
-                    alert("Zmieniono nick")
-                    nick = newNick
-                } else {
-                    alert("Błędny nick")
-                }
-                document.getElementById("message").value = ""
-            } else if (message == "/quit") {
-                zalogowany = false
-                document.getElementById("container").innerHTML += "WYLOGOWANO" + "<br>"
-                document.getElementById("message").value = ""
-            } else {
-                let json = await fetchPostAsync(message)
-                document.getElementById("message").value = ""
             }
         }
 
